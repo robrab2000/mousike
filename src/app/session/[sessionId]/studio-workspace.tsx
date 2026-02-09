@@ -39,6 +39,7 @@ import {
 import type { RehearsalSession, Track, Take, User } from "@/lib/db/schema";
 import { addTrack, updateTrackVolume, toggleTrackMute } from "@/app/(dashboard)/dashboard/actions";
 import { createTake, deleteTake, setActiveTake } from "./actions";
+import { MetronomeControl } from "@/components/metronome";
 
 type AudioFormat = "webm" | "wav";
 
@@ -259,6 +260,11 @@ export function StudioWorkspace({ session, user: _user, isOwner: _isOwner }: Stu
                   >
                     <Square className="h-4 w-4" />
                   </Button>
+
+                  {/* Metronome */}
+                  <div className="border-l border-border pl-4 ml-2">
+                    <MetronomeControl initialTempo={session.tempo || 120} />
+                  </div>
                 </div>
 
                 <div className="flex-1 mx-8">
