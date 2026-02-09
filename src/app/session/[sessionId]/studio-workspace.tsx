@@ -39,6 +39,7 @@ import {
 import type { RehearsalSession, Track, Take, User } from "@/lib/db/schema";
 import { addTrack, updateTrackVolume, toggleTrackMute } from "@/app/(dashboard)/dashboard/actions";
 import { createTake, deleteTake, setActiveTake } from "./actions";
+import { upload } from "@vercel/blob/client";
 import { MetronomeControl } from "@/components/metronome";
 
 type AudioFormat = "webm" | "wav";
@@ -164,12 +165,21 @@ export function StudioWorkspace({ session, user: _user, isOwner: _isOwner }: Stu
 
     setIsSaving(true);
     try {
+      // Upload blob to Vercel Blob (client-side)
+      const filename = `takes/${recordingTrackId}/${Date.now()}.${selectedFormat}`;
+      const { url } = await upload(filename, pendingBlob, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      });
+
+      // Save take metadata to database
       await createTake(
         recordingTrackId,
         session.id,
-        pendingBlob,
+        url,
         pendingDuration,
-        selectedFormat
+        selectedFormat,
+        pendingBlob.size
       );
       setShowKeepDialog(false);
       setPendingBlob(null);

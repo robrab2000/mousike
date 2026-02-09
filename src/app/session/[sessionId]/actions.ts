@@ -5,25 +5,19 @@ import { db } from "@/lib/db";
 import { takes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { put } from "@vercel/blob";
 
 export async function createTake(
   trackId: string,
   sessionId: string,
-  blob: Blob,
+  blobUrl: string,
   duration: number,
-  format: string
+  format: string,
+  fileSize: number
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
   }
-
-  // Upload to Vercel Blob
-  const filename = `takes/${trackId}/${Date.now()}.${format}`;
-  const { url } = await put(filename, blob, {
-    access: "public",
-  });
 
   // Set all other takes for this track to inactive
   await db
@@ -37,10 +31,10 @@ export async function createTake(
     .values({
       trackId,
       userId: session.user.id,
-      blobUrl: url,
+      blobUrl,
       duration: Math.round(duration * 1000), // Convert to milliseconds
       format,
-      fileSize: blob.size,
+      fileSize,
       isActive: true,
     })
     .returning();
